@@ -1,0 +1,1486 @@
+---
+title: "House Price Analysis"
+author: "Vrajesh K S"
+date: "1 February 2018"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r code}
+gr_train=read.csv("D:/Great Lakes Sales price/gr_train.csv",na.strings = c(" ","","NA"))
+head(gr_train)
+
+```
+```{r}
+dim(gr_train)
+summary(gr_train)
+```
+```{r}
+colSums(is.na(gr_train))
+```
+```{r}
+str(gr_train)
+names(gr_train)
+```
+```{r}
+levels(gr_train$AREA)
+gr_train$AREA=as.character(gr_train$AREA)
+table(gr_train$AREA)
+
+library("car")
+
+gr_train$AREA<-recode(gr_train$AREA,"c('Adyr')='Adyar'")
+
+gr_train$AREA<-recode(gr_train$AREA,"c('Ana Nagar','Ann Nagar')='Anna Nagar'")
+#gr_train[gr_train$AREA=="Anna Nagar",]
+table(gr_train$AREA)
+
+gr_train$AREA<-recode(gr_train$AREA,"c('Chormpet','Chrmpet','Chrompt')
+                ='Chrompet'")
+table(gr_train$AREA)
+
+gr_train$AREA<-recode(gr_train$AREA,"c('Karapakam')='Karapakkam'")
+gr_train$AREA<-recode(gr_train$AREA,"c('KKNagar')='KK Nagar'")
+gr_train$AREA<-recode(gr_train$AREA,"c('TNagar')='T Nagar'")
+gr_train$AREA<-recode(gr_train$AREA,"c('Velchery')='Velachery'")
+gr_train$AREA=as.factor(gr_train$AREA)
+levels(gr_train$AREA)
+table(gr_train$AREA)
+
+```
+```{r}
+agg=aggregate(SALES_PRICE~AREA,data = gr_train,FUN = mean,na.rm=T)
+agg$SALES_PRICE
+agg$SALES_PRICE=as.factor(agg$SALES_PRICE)
+agg$SALES_PRICE=as.numeric(as.character(agg$SALES_PRICE))
+agg$AREA
+class(agg$SALES_PRICE)
+
+library("ggplot2")
+ggplot(data = gr_train,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg,
+                                                         aes(x=AREA,y=mean(SALES_PRICE),label=round(agg$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+geom_boxplot()
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(INT_SQFT))+geom_histogram(fill="steelblue")
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=INT_SQFT,y=SALES_PRICE))+geom_point(color='darkblue')
+```
+```{r}
+cor.test(log(gr_train$INT_SQFT),gr_train$SALES_PRICE)
+boxplot.stats(gr_train$INT_SQFT)$out
+```
+```{r}
+library("lubridate")
+class(gr_train$DATE_SALE)
+gr_train$DATE_SALE=dmy(gr_train$DATE_SALE)
+
+class(gr_train$DATE_BUILD)
+gr_train$DATE_BUILD=dmy(gr_train$DATE_BUILD)
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(DIST_MAINROAD,fill=SALES_PRICE))+geom_histogram(fill="steelblue")
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=DIST_MAINROAD,y=SALES_PRICE))+geom_point(color='darkblue')
+```
+```{r}
+boxplot.stats(gr_train$DIST_MAINROAD)$out
+```
+```{r}
+table(gr_train$N_BEDROOM)
+class(gr_train$N_BEDROOM)
+gr_train$N_BEDROOM=as.factor(gr_train$N_BEDROOM)
+
+agg1=aggregate(SALES_PRICE~N_BEDROOM,data = gr_train,FUN = mean,na.rm=T)
+agg1$SALES_PRICE
+agg1$SALES_PRICE=as.factor(agg1$SALES_PRICE)
+agg1$SALES_PRICE=as.numeric(as.character(agg1$SALES_PRICE))
+agg1$N_BEDROOM
+class(agg1$SALES_PRICE)
+ggplot(data = gr_train,mapping = aes(N_BEDROOM,fill=N_BEDROOM))+geom_bar()
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=N_BEDROOM,y=SALES_PRICE,fill=N_BEDROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg1,
+                                                         aes(x=N_BEDROOM,y=mean(SALES_PRICE),label=round(agg1$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=N_BEDROOM,y=SALES_PRICE,fill=N_BEDROOM))+geom_boxplot()
+```
+```{r}
+which(is.na(gr_train$N_BEDROOM))
+gr_train[is.na(gr_train$N_BEDROOM),]
+
+
+which(is.na(gr_train$N_BATHROOM))
+gr_train[is.na(gr_train$N_BATHROOM),]
+gr_train$N_BATHROOM=as.factor(gr_train$N_BATHROOM)
+
+agg2=aggregate(SALES_PRICE~N_BATHROOM,data = gr_train,FUN = mean,na.rm=T)
+agg2$SALES_PRICE
+agg2$SALES_PRICE=as.factor(agg2$SALES_PRICE)
+agg2$SALES_PRICE=as.numeric(as.character(agg2$SALES_PRICE))
+agg2$N_BATHROOM
+class(agg2$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(N_BATHROOM,fill=N_BATHROOM))+geom_bar()
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=N_BATHROOM,y=SALES_PRICE,fill=N_BATHROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg2,
+                                                         aes(x=N_BATHROOM,y=mean(SALES_PRICE),label=round(agg2$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=N_BATHROOM,y=SALES_PRICE,fill=N_BATHROOM))+geom_boxplot()
+```
+```{r}
+table(gr_train$N_ROOM)
+class(gr_train$N_ROOM)
+gr_train$N_ROOM=as.factor(gr_train$N_ROOM)
+
+agg3=aggregate(SALES_PRICE~N_ROOM,data = gr_train,FUN = mean,na.rm=T)
+agg3$SALES_PRICE
+agg3$SALES_PRICE=as.factor(agg3$SALES_PRICE)
+agg3$SALES_PRICE=as.numeric(as.character(agg3$SALES_PRICE))
+agg3$N_ROOM
+class(agg3$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(N_ROOM,fill=N_ROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=N_ROOM,y=SALES_PRICE,fill=N_ROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg3,
+                                                         aes(x=N_ROOM,y=mean(SALES_PRICE),label=round(agg3$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=N_ROOM,y=SALES_PRICE,fill=N_ROOM))+geom_boxplot()
+```
+```{r}
+levels(gr_train$SALE_COND)
+table(gr_train$SALE_COND)
+gr_train$SALE_COND<-recode(gr_train$SALE_COND,"c('Ab Normal')='AbNormal'")
+gr_train$SALE_COND<-recode(gr_train$SALE_COND,"c('Adj Land')='AdjLand'")
+gr_train$SALE_COND<-recode(gr_train$SALE_COND,"c('Partiall','PartiaLl')='Partial'")
+levels(gr_train$SALE_COND)
+table(gr_train$SALE_COND)
+gr_train$SALE_COND=as.factor(gr_train$SALE_COND)
+
+agg4=aggregate(SALES_PRICE~SALE_COND,data = gr_train,FUN = mean,na.rm=T)
+agg4$SALES_PRICE
+agg4$SALES_PRICE=as.factor(agg4$SALES_PRICE)
+agg4$SALES_PRICE=as.numeric(as.character(agg4$SALES_PRICE))
+agg4$SALE_COND
+class(agg4$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(SALE_COND,fill=SALE_COND))+geom_bar()
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=SALE_COND,y=SALES_PRICE,fill=SALE_COND))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg4,
+                                                         aes(x=SALE_COND,y=mean(SALES_PRICE),label=round(agg4$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=SALE_COND,y=SALES_PRICE,fill=SALE_COND))+geom_boxplot()
+```
+```{r}
+levels(gr_train$PARK_FACIL)
+table(gr_train$PARK_FACIL)
+gr_train$PARK_FACIL<-recode(gr_train$PARK_FACIL,"c('Noo')='No'")
+ggplot(data = gr_train,mapping = aes(PARK_FACIL,fill=PARK_FACIL))+geom_bar()
+
+gr_train$PARK_FACIL=as.factor(gr_train$PARK_FACIL)
+
+agg5=aggregate(SALES_PRICE~PARK_FACIL,data = gr_train,FUN = mean,na.rm=T)
+agg5$SALES_PRICE
+agg5$SALES_PRICE=as.factor(agg5$SALES_PRICE)
+agg5$SALES_PRICE=as.numeric(as.character(agg5$SALES_PRICE))
+agg5$PARK_FACIL
+class(agg5$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(PARK_FACIL,fill=PARK_FACIL))+geom_bar()
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=PARK_FACIL,y=SALES_PRICE,fill=PARK_FACIL))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg5,
+                                                         aes(x=PARK_FACIL,y=mean(SALES_PRICE),label=round(agg5$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=PARK_FACIL,y=SALES_PRICE,fill=PARK_FACIL))+geom_boxplot()
+```
+```{r}
+levels(gr_train$BUILDTYPE)
+table(gr_train$BUILDTYPE)
+gr_train$BUILDTYPE<-recode(gr_train$BUILDTYPE,"c('Comercial','Commercil')='Commercial'")
+gr_train$BUILDTYPE<-recode(gr_train$BUILDTYPE,"c('Other')='Others'")
+ggplot(data = gr_train,mapping = aes(BUILDTYPE,fill=BUILDTYPE))+geom_bar()
+
+gr_train$BUILDTYPE=as.character(gr_train$BUILDTYPE)
+colSums(is.na(gr_train))
+gr_train$BUILDTYPE[gr_train$BUILDTYPE=="Commercial"]="3BHK APTS"
+gr_train$BUILDTYPE[gr_train$BUILDTYPE=="Others"]="2BHK APTS"
+
+gr_train$BUILDTYPE=as.factor(gr_train$BUILDTYPE)
+
+agg6=aggregate(SALES_PRICE~BUILDTYPE,data = gr_train,FUN = mean,na.rm=T)
+agg6$SALES_PRICE
+agg6$SALES_PRICE=as.factor(agg6$SALES_PRICE)
+agg6$SALES_PRICE=as.numeric(as.character(agg6$SALES_PRICE))
+agg6$BUILDTYPE
+nlevels(agg6$BUILDTYPE)
+class(agg6$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(BUILDTYPE,fill=BUILDTYPE))+geom_bar()
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=BUILDTYPE,y=SALES_PRICE,fill=BUILDTYPE))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg6,
+                                                         aes(x=BUILDTYPE,y=mean(SALES_PRICE),label=round(agg6$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=BUILDTYPE,y=SALES_PRICE,fill=BUILDTYPE))+geom_boxplot()
+```
+```{r}
+levels(gr_train$UTILITY_AVAIL)
+table(gr_train$UTILITY_AVAIL)
+gr_train$UTILITY_AVAIL<-recode(gr_train$UTILITY_AVAIL,"c('NoSewr ')='NoSewr'")
+gr_train$UTILITY_AVAIL<-recode(gr_train$UTILITY_AVAIL,"c('All Pub')='AllPub'")
+
+gr_train$UTILITY_AVAIL=as.factor(gr_train$UTILITY_AVAIL)
+
+agg7=aggregate(SALES_PRICE~UTILITY_AVAIL,data = gr_train,FUN = mean,na.rm=T)
+agg7$SALES_PRICE
+agg7$SALES_PRICE=as.factor(agg7$SALES_PRICE)
+agg7$SALES_PRICE=as.numeric(as.character(agg7$SALES_PRICE))
+agg7$UTILITY_AVAIL
+nlevels(agg7$UTILITY_AVAIL)
+class(agg7$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(UTILITY_AVAIL,fill=UTILITY_AVAIL))+geom_bar()
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=UTILITY_AVAIL,y=SALES_PRICE,fill=UTILITY_AVAIL))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg7,
+                                                         aes(x=UTILITY_AVAIL,y=mean(SALES_PRICE),label=round(agg7$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=UTILITY_AVAIL,y=SALES_PRICE,fill=UTILITY_AVAIL))+geom_boxplot()
+```
+```{r}
+levels(gr_train$STREET)
+table(gr_train$STREET)
+gr_train$STREET<-recode(gr_train$STREET,"c('NoAccess')='No Access'")
+gr_train$STREET<-recode(gr_train$STREET,"c('Pavd')='Paved'")
+
+gr_train$STREET=as.factor(gr_train$STREET)
+
+agg8=aggregate(SALES_PRICE~STREET,data = gr_train,FUN = mean,na.rm=T)
+agg8$SALES_PRICE
+agg8$SALES_PRICE=as.factor(agg8$SALES_PRICE)
+agg8$SALES_PRICE=as.numeric(as.character(agg8$SALES_PRICE))
+agg8$STREET
+nlevels(agg8$STREET)
+class(agg8$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(STREET,fill=STREET))+geom_bar()
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=STREET,y=SALES_PRICE,fill=STREET))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg8,
+                                                         aes(x=STREET,y=mean(SALES_PRICE),label=round(agg8$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=STREET,y=SALES_PRICE,fill=STREET))+geom_boxplot()
+```
+```{r}
+levels(gr_train$MZZONE)
+table(gr_train$MZZONE)
+
+gr_train$MZZONE=as.factor(gr_train$MZZONE)
+
+agg9=aggregate(SALES_PRICE~MZZONE,data = gr_train,FUN = mean,na.rm=T)
+agg9$SALES_PRICE
+agg9$SALES_PRICE=as.factor(agg9$SALES_PRICE)
+agg9$SALES_PRICE=as.numeric(as.character(agg9$SALES_PRICE))
+agg9$MZZONE
+nlevels(agg9$MZZONE)
+class(agg9$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(MZZONE,fill=MZZONE))+geom_bar()
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg9,
+                                                         aes(x=MZZONE,y=mean(SALES_PRICE),label=round(agg9$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+geom_boxplot()
+```
+```{r}
+summary(gr_train$QS_ROOMS)
+table(gr_train$QS_ROOMS)
+gr_train$QS_ROOMS <- with(gr_train,ifelse(QS_ROOMS>4.4,5,ifelse(QS_ROOMS>3.5,4,
+                                                    ifelse(QS_ROOMS>2.4,3,2))))
+gr_train$QS_ROOMS=as.factor(gr_train$QS_ROOMS)
+
+agg10=aggregate(SALES_PRICE~QS_ROOMS,data = gr_train,FUN = mean,na.rm=T)
+agg10$SALES_PRICE
+agg10$SALES_PRICE=as.factor(agg10$SALES_PRICE)
+agg10$SALES_PRICE=as.numeric(as.character(agg10$SALES_PRICE))
+agg10$QS_ROOMS
+nlevels(agg10$QS_ROOMS)
+class(agg10$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(QS_ROOMS,fill=QS_ROOMS))+geom_bar()
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=QS_ROOMS,y=SALES_PRICE,fill=QS_ROOMS))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg10,
+                                                         aes(x=QS_ROOMS,y=mean(SALES_PRICE),label=round(agg10$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=QS_ROOMS,y=SALES_PRICE,fill=QS_ROOMS))+geom_boxplot()
+```
+```{r}
+table(gr_train$QS_BATHROOM)
+gr_train$QS_BATHROOM <- with(gr_train,ifelse(QS_BATHROOM>4.4,5,ifelse(QS_BATHROOM>3.5,4,
+                                                          ifelse(QS_BATHROOM>2.4,3,2))))
+gr_train$QS_BATHROOM=as.factor(gr_train$QS_BATHROOM)
+
+agg11=aggregate(SALES_PRICE~QS_BATHROOM,data = gr_train,FUN = mean,na.rm=T)
+agg11$SALES_PRICE
+agg11$SALES_PRICE=as.factor(agg11$SALES_PRICE)
+agg11$SALES_PRICE=as.numeric(as.character(agg11$SALES_PRICE))
+agg11$QS_BATHROOM
+nlevels(agg11$QS_BATHROOM)
+class(agg11$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(QS_BATHROOM,fill=QS_BATHROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=QS_BATHROOM,y=SALES_PRICE,fill=QS_BATHROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg11,
+                                                         aes(x=QS_BATHROOM,y=mean(SALES_PRICE),label=round(agg11$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=QS_BATHROOM,y=SALES_PRICE,fill=QS_BATHROOM))+geom_boxplot()
+```
+```{r}
+table(gr_train$QS_BEDROOM)
+gr_train$QS_BEDROOM <- with(gr_train,ifelse(QS_BEDROOM>4.4,5,ifelse(QS_BEDROOM>3.5,4,
+                                                        ifelse(QS_BEDROOM>2.4,3,2))))
+
+gr_train$QS_BEDROOM=as.factor(gr_train$QS_BEDROOM)
+
+agg12=aggregate(SALES_PRICE~QS_BEDROOM,data = gr_train,FUN = mean,na.rm=T)
+agg12$SALES_PRICE
+agg12$SALES_PRICE=as.factor(agg12$SALES_PRICE)
+agg12$SALES_PRICE=as.numeric(as.character(agg12$SALES_PRICE))
+agg12$QS_BEDROOM
+nlevels(agg12$QS_BEDROOM)
+class(agg12$SALES_PRICE)
+
+ggplot(data = gr_train,mapping = aes(QS_BEDROOM,fill=QS_BEDROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=QS_BEDROOM,y=SALES_PRICE,fill=QS_BEDROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=agg12,
+                                                         aes(x=QS_BEDROOM,y=mean(SALES_PRICE),label=round(agg12$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=QS_BEDROOM,y=SALES_PRICE,fill=QS_BEDROOM))+geom_boxplot()
+```
+```{r}
+gr_train$houseage=gr_train$DATE_SALE-gr_train$DATE_BUILD
+class(gr_train$houseage)
+gr_train$houseage=as.numeric(gr_train$houseage)
+
+ggplot(data = gr_train,mapping = aes(houseage))+geom_histogram(fill="steelblue")
+
+```
+
+```{r}
+ggplot(data = gr_train,mapping = aes(x=houseage,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(REG_FEE))+geom_histogram(fill="steelblue")
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=REG_FEE,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+cor.test(gr_train$INT_SQFT,gr_train$SALES_PRICE)
+boxplot.stats(gr_train$REG_FEE)$out
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(COMMIS))+geom_histogram(fill="steelblue")
+
+
+```
+```{r}
+ggplot(data = gr_train,mapping = aes(x=COMMIS,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+cor.test(gr_train$COMMIS,gr_train$SALES_PRICE)
+boxplot.stats(gr_train$COMMIS)$out
+```
+
+
+```{r}
+
+summary(gr_train$QS_OVERALL)
+gr_train$QS_OVERALL <- with(gr_train,ifelse(QS_OVERALL>4.4,5,ifelse(QS_OVERALL>3.5,4,
+                                                                    ifelse(QS_OVERALL>2.4,3,2))))
+gr_train$QS_OVERALL=as.factor(gr_train$QS_OVERALL)
+colnames(gr_train)
+gr_train=gr_train[,-c(1,4,11)]
+colSums(is.na(gr_train))
+library("missForest")
+gr_train<-missForest(gr_train,verbose = TRUE)
+class(gr_train)
+gr_train<-data.frame(gr_train$ximp)
+gr_train$OOBerror
+colSums(is.na(gr_train))
+
+
+```
+```{r}
+House=gr_train[gr_train$BUILDTYPE=="House",]
+BHK_2=gr_train[gr_train$BUILDTYPE=="2BHK APTS",]
+BHK_3=gr_train[gr_train$BUILDTYPE=="3BHK APTS",]
+summary(House$SALES_PRICE)
+ggplot(data = House,mapping = aes(SALES_PRICE))+geom_density(fill="steelblue")
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(SALES_PRICE))+geom_density(fill="steelblue")
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(SALES_PRICE))+geom_density(fill="steelblue")
+```
+```{r}
+ggplot()+geom_density(data = House,mapping = aes(SALES_PRICE),colour="red")+
+  geom_density(data = BHK_2,mapping = aes(SALES_PRICE),colour="blue")+
+  geom_density(data = BHK_3,mapping = aes(SALES_PRICE),colour="green")
+```
+```{r}
+library("car")
+boxplot.stats(House$SALES_PRICE)$out
+boxplot.stats(BHK_2$SALES_PRICE)$out
+boxplot.stats(BHK_3$SALES_PRICE)$out
+```
+```{r}
+#1 AREA
+levels(House$AREA)
+table(House$AREA)
+
+ggplot(data = House,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+
+aggr1=aggregate(SALES_PRICE~AREA,data = House,FUN = mean,na.rm=T)
+aggr1$SALES_PRICE
+aggr1$SALES_PRICE=as.factor(aggr1$SALES_PRICE)
+aggr1$SALES_PRICE=as.numeric(as.character(aggr1$SALES_PRICE))
+aggr1$AREA
+class(aggr1$SALES_PRICE)
+
+library("ggplot2")
+ggplot(data = House,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+```
+```{r}
+ggplot(data = House,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr1,
+                                                         aes(x=AREA,y=mean(SALES_PRICE),label=round(aggr1$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+geom_boxplot()
+```
+```{r}
+levels(BHK_2$AREA)
+table(BHK_2$AREA)
+
+ggplot(data = BHK_2,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+
+aggr2=aggregate(SALES_PRICE~AREA,data = BHK_2,FUN = mean,na.rm=T)
+aggr2$SALES_PRICE
+aggr2$SALES_PRICE=as.factor(aggr2$SALES_PRICE)
+aggr2$SALES_PRICE=as.numeric(as.character(aggr2$SALES_PRICE))
+aggr2$AREA
+class(aggr2$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr2,
+                                                         aes(x=AREA,y=mean(SALES_PRICE),label=round(aggr2$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+geom_boxplot()
+```
+```{r}
+levels(BHK_3$AREA)
+table(BHK_3$AREA)
+
+ggplot(data = BHK_3,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+
+aggr3=aggregate(SALES_PRICE~AREA,data = BHK_3,FUN = mean,na.rm=T)
+aggr3$SALES_PRICE
+aggr3$SALES_PRICE=as.factor(aggr3$SALES_PRICE)
+aggr3$SALES_PRICE=as.numeric(as.character(aggr3$SALES_PRICE))
+aggr3$AREA
+class(aggr3$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr3,
+                                                         aes(x=AREA,y=mean(SALES_PRICE),label=round(aggr3$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+geom_boxplot()
+```
+```{r}
+#2 INT_SQFT
+ggplot(data = House,mapping = aes(INT_SQFT))+geom_histogram(fill="steelblue")
+```
+```{r}
+ggplot(data = House,mapping = aes(x=INT_SQFT,y=SALES_PRICE))+geom_point(color='darkblue')
+```
+```{r}
+cor.test(House$INT_SQFT,House$SALES_PRICE)
+```
+```{r}
+boxplot.stats(House$INT_SQFT)$out
+summary(House$INT_SQFT)
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(INT_SQFT))+geom_histogram(fill="steelblue")
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=INT_SQFT,y=SALES_PRICE))+geom_point(color='darkblue')
+```
+```{r}
+cor.test(BHK_2$INT_SQFT,BHK_2$SALES_PRICE)
+```
+```{r}
+boxplot.stats(BHK_2$INT_SQFT)$out
+summary(BHK_2$INT_SQFT)
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(INT_SQFT))+geom_histogram(fill="steelblue")
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=INT_SQFT,y=SALES_PRICE))+geom_point(color='darkblue')
+```
+```{r}
+cor.test(BHK_3$INT_SQFT,BHK_3$SALES_PRICE)
+```
+```{r}
+boxplot.stats(BHK_3$INT_SQFT)$out
+summary(BHK_3$INT_SQFT)
+
+```
+```{r}
+bed0=House[House$N_BEDROOM==1,]
+bed1=House[House$N_BEDROOM==2,]
+bed2=House[House$N_BEDROOM==3,]
+bed3=House[House$N_BEDROOM==4,]
+ggplot(data = bed1,mapping = aes(x=INT_SQFT,y=SALES_PRICE))+
+  geom_point()
+```
+
+```{r}
+#3 DIST_MAINROAD
+ggplot(data = House,mapping = aes(DIST_MAINROAD,fill=SALES_PRICE))+geom_histogram(fill="steelblue")
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=DIST_MAINROAD,y=SALES_PRICE))+geom_point(color='darkblue')
+```
+```{r}
+boxplot.stats(House$DIST_MAINROAD)$out
+summary(House$DIST_MAINROAD)
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(DIST_MAINROAD,fill=SALES_PRICE))+geom_histogram(fill="steelblue")
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=DIST_MAINROAD,y=SALES_PRICE))+geom_point(color='darkblue')
+```
+```{r}
+boxplot.stats(BHK_2$DIST_MAINROAD)$out
+summary(BHK_2$DIST_MAINROAD)
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(DIST_MAINROAD,fill=SALES_PRICE))+geom_histogram(fill="steelblue")
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=DIST_MAINROAD,y=SALES_PRICE))+geom_point(color='darkblue')
+```
+```{r}
+boxplot.stats(BHK_3$DIST_MAINROAD)$out
+summary(BHK_3$DIST_MAINROAD)
+
+```
+```{r}
+#4 N_BEDROOM
+
+aggr4=aggregate(SALES_PRICE~N_BEDROOM,data = House,FUN = mean,na.rm=T)
+aggr4$SALES_PRICE
+aggr4$SALES_PRICE=as.factor(aggr4$SALES_PRICE)
+aggr4$SALES_PRICE=as.numeric(as.character(aggr4$SALES_PRICE))
+aggr4$N_BEDROOM
+class(aggr4$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(N_BEDROOM,fill=N_BEDROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=N_BEDROOM,y=SALES_PRICE,fill=N_BEDROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr4,
+                                                         aes(x=N_BEDROOM,y=mean(SALES_PRICE),label=round(aggr4$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=N_BEDROOM,y=SALES_PRICE,fill=N_BEDROOM))+geom_boxplot()
+```
+```{r}
+aggr5=aggregate(SALES_PRICE~N_BEDROOM,data = BHK_2,FUN = mean,na.rm=T)
+aggr5$SALES_PRICE
+aggr5$SALES_PRICE=as.factor(aggr5$SALES_PRICE)
+aggr5$SALES_PRICE=as.numeric(as.character(aggr5$SALES_PRICE))
+aggr5$N_BEDROOM
+class(aggr5$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(N_BEDROOM,fill=N_BEDROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=N_BEDROOM,y=SALES_PRICE,fill=N_BEDROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr5,
+                                                         aes(x=N_BEDROOM,y=mean(SALES_PRICE),label=round(aggr5$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=N_BEDROOM,y=SALES_PRICE,fill=N_BEDROOM))+geom_boxplot()
+```
+```{r}
+aggr6=aggregate(SALES_PRICE~N_BEDROOM,data = BHK_3,FUN = mean,na.rm=T)
+aggr6$SALES_PRICE
+aggr6$SALES_PRICE=as.factor(aggr6$SALES_PRICE)
+aggr6$SALES_PRICE=as.numeric(as.character(aggr6$SALES_PRICE))
+aggr6$N_BEDROOM
+class(aggr6$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(N_BEDROOM,fill=N_BEDROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=N_BEDROOM,y=SALES_PRICE,fill=N_BEDROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr6,
+                                                         aes(x=N_BEDROOM,y=mean(SALES_PRICE),label=round(aggr6$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=N_BEDROOM,y=SALES_PRICE,fill=N_BEDROOM))+geom_boxplot()
+
+```
+```{r}
+bed0=House[House$N_BEDROOM==1,]
+bed1=House[House$N_BEDROOM==2,]
+bed2=House[House$N_BEDROOM==3,]
+bed3=House[House$N_BEDROOM==4,]
+
+ggplot(data = bed1,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+```
+```{r}
+ggplot(data = bed2,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+```
+```{r}
+ggplot(data = bed3,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+```
+```{r}
+ggplot(data = bed1,mapping = aes(x=AREA,y=SALES_PRICE,fill=AREA))+
+  geom_bar(stat="identity",position = "dodge")
+```
+```{r}
+bed4=BHK_2[BHK_2$N_BEDROOM==1,]
+bed5=BHK_2[BHK_2$N_BEDROOM==2,]
+bed6=BHK_2[BHK_2$N_BEDROOM==3,]
+bed7=BHK_2[BHK_2$N_BEDROOM==4,]
+
+ggplot(data = bed4,mapping = aes(x=AREA,fill=AREA))+geom_bar()
+```
+
+
+```{r}
+#5 N_BATHROOM
+
+aggr7=aggregate(SALES_PRICE~N_BATHROOM,data = House,FUN = mean,na.rm=T)
+aggr7$SALES_PRICE
+aggr7$SALES_PRICE=as.factor(aggr7$SALES_PRICE)
+aggr7$SALES_PRICE=as.numeric(as.character(aggr7$SALES_PRICE))
+aggr7$N_BATHROOM
+class(aggr7$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(N_BATHROOM,fill=N_BATHROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=N_BATHROOM,y=SALES_PRICE,fill=N_BATHROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr7,
+                                                         aes(x=N_BATHROOM,y=mean(SALES_PRICE),label=round(aggr7$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=N_BATHROOM,y=SALES_PRICE,fill=N_BATHROOM))+geom_boxplot()
+
+```
+```{r}
+bath1=House[House$N_BATHROOM==1,]
+bath2=House[House$N_BATHROOM==2,]
+
+ggplot(data = bath2,mapping = aes(AREA,fill=AREA))+geom_bar()
+```
+
+```{r}
+aggr8=aggregate(SALES_PRICE~N_BATHROOM,data = BHK_2,FUN = mean,na.rm=T)
+aggr8$SALES_PRICE
+aggr8$SALES_PRICE=as.factor(aggr8$SALES_PRICE)
+aggr8$SALES_PRICE=as.numeric(as.character(aggr8$SALES_PRICE))
+aggr8$N_BATHROOM
+class(aggr8$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(N_BATHROOM,fill=N_BATHROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=N_BATHROOM,y=SALES_PRICE,fill=N_BATHROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr8,
+                                                         aes(x=N_BATHROOM,y=mean(SALES_PRICE),label=round(aggr8$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=N_BATHROOM,y=SALES_PRICE,fill=N_BATHROOM))+geom_boxplot()
+
+```
+```{r}
+aggr9=aggregate(SALES_PRICE~N_BATHROOM,data = BHK_3,FUN = mean,na.rm=T)
+aggr9$SALES_PRICE
+aggr9$SALES_PRICE=as.factor(aggr9$SALES_PRICE)
+aggr9$SALES_PRICE=as.numeric(as.character(aggr9$SALES_PRICE))
+aggr9$N_BATHROOM
+class(aggr9$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(N_BATHROOM,fill=N_BATHROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=N_BATHROOM,y=SALES_PRICE,fill=N_BATHROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr9,
+                                                         aes(x=N_BATHROOM,y=mean(SALES_PRICE),label=round(aggr9$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=N_BATHROOM,y=SALES_PRICE,fill=N_BATHROOM))+geom_boxplot()
+
+```
+```{r}
+#6 N_ROOMS
+
+aggr10=aggregate(SALES_PRICE~N_ROOM,data = House,FUN = mean,na.rm=T)
+aggr10$SALES_PRICE
+aggr10$SALES_PRICE=as.factor(aggr10$SALES_PRICE)
+aggr10$SALES_PRICE=as.numeric(as.character(aggr10$SALES_PRICE))
+aggr10$N_ROOM
+class(aggr10$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(N_ROOM,fill=N_ROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=N_ROOM,y=SALES_PRICE,fill=N_ROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr10,
+                                                         aes(x=N_ROOM,y=mean(SALES_PRICE),label=round(aggr10$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=N_ROOM,y=SALES_PRICE,fill=N_ROOM))+geom_boxplot()
+
+```
+```{r}
+room1=House[House$N_ROOM==2,]
+room2=House[House$N_ROOM==3,]
+room3=House[House$N_ROOM==4,]
+room4=House[House$N_ROOM==5,]
+room5=House[House$N_ROOM==6,]
+
+ggplot(data = room1,mapping = aes(AREA,fill=AREA))+geom_bar()
+ggplot(data = room2,mapping = aes(AREA,fill=AREA))+geom_bar()
+ggplot(data = room3,mapping = aes(AREA,fill=AREA))+geom_bar()
+ggplot(data = room4,mapping = aes(AREA,fill=AREA))+geom_bar()
+ggplot(data = room5,mapping = aes(AREA,fill=AREA))+geom_bar()
+```
+
+```{r}
+aggr11=aggregate(SALES_PRICE~N_ROOM,data = BHK_2,FUN = mean,na.rm=T)
+aggr11$SALES_PRICE
+aggr11$SALES_PRICE=as.factor(aggr11$SALES_PRICE)
+aggr11$SALES_PRICE=as.numeric(as.character(aggr11$SALES_PRICE))
+aggr11$N_ROOM
+class(aggr11$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(N_ROOM,fill=N_ROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=N_ROOM,y=SALES_PRICE,fill=N_ROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr11,
+                                                         aes(x=N_ROOM,y=mean(SALES_PRICE),label=round(aggr11$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=N_ROOM,y=SALES_PRICE,fill=N_ROOM))+geom_boxplot()
+
+```
+```{r}
+aggr12=aggregate(SALES_PRICE~N_ROOM,data = BHK_3,FUN = mean,na.rm=T)
+aggr12$SALES_PRICE
+aggr12$SALES_PRICE=as.factor(aggr12$SALES_PRICE)
+aggr12$SALES_PRICE=as.numeric(as.character(aggr12$SALES_PRICE))
+aggr12$N_ROOM
+class(aggr12$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(N_ROOM,fill=N_ROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=N_ROOM,y=SALES_PRICE,fill=N_ROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr12,
+                                                         aes(x=N_ROOM,y=mean(SALES_PRICE),label=round(aggr12$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=N_ROOM,y=SALES_PRICE,fill=N_ROOM))+geom_boxplot()
+
+```
+```{r}
+#7 SALE_COND
+
+aggr13=aggregate(SALES_PRICE~SALE_COND,data = House,FUN = mean,na.rm=T)
+aggr13$SALES_PRICE
+aggr13$SALES_PRICE=as.factor(aggr13$SALES_PRICE)
+aggr13$SALES_PRICE=as.numeric(as.character(aggr13$SALES_PRICE))
+aggr13$SALE_COND
+class(aggr13$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(SALE_COND,fill=SALE_COND))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=SALE_COND,y=SALES_PRICE,fill=SALE_COND))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr13,
+                                                         aes(x=SALE_COND,y=mean(SALES_PRICE),label=round(aggr13$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=SALE_COND,y=SALES_PRICE,fill=SALE_COND))+geom_boxplot()
+
+```
+```{r}
+aggr14=aggregate(SALES_PRICE~SALE_COND,data = BHK_2,FUN = mean,na.rm=T)
+aggr14$SALES_PRICE
+aggr14$SALES_PRICE=as.factor(aggr14$SALES_PRICE)
+aggr14$SALES_PRICE=as.numeric(as.character(aggr14$SALES_PRICE))
+aggr14$SALE_COND
+class(aggr14$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(SALE_COND,fill=SALE_COND))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=SALE_COND,y=SALES_PRICE,fill=SALE_COND))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr14,
+                                                         aes(x=SALE_COND,y=mean(SALES_PRICE),label=round(aggr14$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=SALE_COND,y=SALES_PRICE,fill=SALE_COND))+geom_boxplot()
+
+```
+```{r}
+aggr15=aggregate(SALES_PRICE~SALE_COND,data = BHK_3,FUN = mean,na.rm=T)
+aggr15$SALES_PRICE
+aggr15$SALES_PRICE=as.factor(aggr15$SALES_PRICE)
+aggr15$SALES_PRICE=as.numeric(as.character(aggr15$SALES_PRICE))
+aggr15$SALE_COND
+class(aggr15$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(SALE_COND,fill=SALE_COND))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=SALE_COND,y=SALES_PRICE,fill=SALE_COND))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr15,
+                                                         aes(x=SALE_COND,y=mean(SALES_PRICE),label=round(aggr15$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=SALE_COND,y=SALES_PRICE,fill=SALE_COND))+geom_boxplot()
+
+```
+```{r}
+#8 PARK_FACIL
+
+aggr16=aggregate(SALES_PRICE~PARK_FACIL,data = House,FUN = mean,na.rm=T)
+aggr16$SALES_PRICE
+aggr16$SALES_PRICE=as.factor(aggr16$SALES_PRICE)
+aggr16$SALES_PRICE=as.numeric(as.character(aggr16$SALES_PRICE))
+aggr16$PARK_FACIL
+class(aggr16$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(PARK_FACIL,fill=PARK_FACIL))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=PARK_FACIL,y=SALES_PRICE,fill=PARK_FACIL))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr16,
+                                                         aes(x=PARK_FACIL,y=mean(SALES_PRICE),label=round(aggr16$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=PARK_FACIL,y=SALES_PRICE,fill=PARK_FACIL))+geom_boxplot()
+
+```
+```{r}
+aggr17=aggregate(SALES_PRICE~PARK_FACIL,data = BHK_2,FUN = mean,na.rm=T)
+aggr17$SALES_PRICE
+aggr17$SALES_PRICE=as.factor(aggr17$SALES_PRICE)
+aggr17$SALES_PRICE=as.numeric(as.character(aggr17$SALES_PRICE))
+aggr17$PARK_FACIL
+class(aggr17$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(PARK_FACIL,fill=PARK_FACIL))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=PARK_FACIL,y=SALES_PRICE,fill=PARK_FACIL))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr17,
+                                                         aes(x=PARK_FACIL,y=mean(SALES_PRICE),label=round(aggr17$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=PARK_FACIL,y=SALES_PRICE,fill=PARK_FACIL))+geom_boxplot()
+
+```
+```{r}
+aggr18=aggregate(SALES_PRICE~PARK_FACIL,data = BHK_3,FUN = mean,na.rm=T)
+aggr18$SALES_PRICE
+aggr18$SALES_PRICE=as.factor(aggr18$SALES_PRICE)
+aggr18$SALES_PRICE=as.numeric(as.character(aggr18$SALES_PRICE))
+aggr18$PARK_FACIL
+class(aggr18$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(PARK_FACIL,fill=PARK_FACIL))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=PARK_FACIL,y=SALES_PRICE,fill=PARK_FACIL))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr18,
+                                                         aes(x=PARK_FACIL,y=mean(SALES_PRICE),label=round(aggr18$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=PARK_FACIL,y=SALES_PRICE,fill=PARK_FACIL))+geom_boxplot()
+
+```
+```{r}
+#9 UTILITY_AVAIL
+
+aggr19=aggregate(SALES_PRICE~UTILITY_AVAIL,data = House,FUN = mean,na.rm=T)
+aggr19$SALES_PRICE
+aggr19$SALES_PRICE=as.factor(aggr19$SALES_PRICE)
+aggr19$SALES_PRICE=as.numeric(as.character(aggr19$SALES_PRICE))
+aggr19$UTILITY_AVAIL
+nlevels(aggr19$UTILITY_AVAIL)
+class(aggr19$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(UTILITY_AVAIL,fill=UTILITY_AVAIL))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=UTILITY_AVAIL,y=SALES_PRICE,fill=UTILITY_AVAIL))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr19,
+                                                         aes(x=UTILITY_AVAIL,y=mean(SALES_PRICE),label=round(aggr19$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=UTILITY_AVAIL,y=SALES_PRICE,fill=UTILITY_AVAIL))+geom_boxplot()
+
+```
+```{r}
+aggr20=aggregate(SALES_PRICE~UTILITY_AVAIL,data = BHK_2,FUN = mean,na.rm=T)
+aggr20$SALES_PRICE
+aggr20$SALES_PRICE=as.factor(aggr20$SALES_PRICE)
+aggr20$SALES_PRICE=as.numeric(as.character(aggr20$SALES_PRICE))
+aggr20$UTILITY_AVAIL
+nlevels(aggr20$UTILITY_AVAIL)
+class(aggr20$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(UTILITY_AVAIL,fill=UTILITY_AVAIL))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=UTILITY_AVAIL,y=SALES_PRICE,fill=UTILITY_AVAIL))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr20,
+                                                         aes(x=UTILITY_AVAIL,y=mean(SALES_PRICE),label=round(aggr20$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=UTILITY_AVAIL,y=SALES_PRICE,fill=UTILITY_AVAIL))+geom_boxplot()
+```
+```{r}
+aggr21=aggregate(SALES_PRICE~UTILITY_AVAIL,data = BHK_3,FUN = mean,na.rm=T)
+aggr21$SALES_PRICE
+aggr21$SALES_PRICE=as.factor(aggr21$SALES_PRICE)
+aggr21$SALES_PRICE=as.numeric(as.character(aggr21$SALES_PRICE))
+aggr21$UTILITY_AVAIL
+nlevels(aggr21$UTILITY_AVAIL)
+class(aggr21$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(UTILITY_AVAIL,fill=UTILITY_AVAIL))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=UTILITY_AVAIL,y=SALES_PRICE,fill=UTILITY_AVAIL))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr21,
+                                                         aes(x=UTILITY_AVAIL,y=mean(SALES_PRICE),label=round(aggr21$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=UTILITY_AVAIL,y=SALES_PRICE,fill=UTILITY_AVAIL))+geom_boxplot()
+
+```
+```{r}
+#10 STREET
+
+aggr22=aggregate(SALES_PRICE~STREET,data = House,FUN = mean,na.rm=T)
+aggr22$SALES_PRICE
+aggr22$SALES_PRICE=as.factor(aggr22$SALES_PRICE)
+aggr22$SALES_PRICE=as.numeric(as.character(aggr22$SALES_PRICE))
+aggr22$STREET
+nlevels(aggr22$STREET)
+class(aggr22$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(STREET,fill=STREET))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=STREET,y=SALES_PRICE,fill=STREET))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr22,
+                                                         aes(x=STREET,y=mean(SALES_PRICE),label=round(aggr22$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=STREET,y=SALES_PRICE,fill=STREET))+geom_boxplot()
+
+```
+```{r}
+aggr23=aggregate(SALES_PRICE~STREET,data = BHK_2,FUN = mean,na.rm=T)
+aggr23$SALES_PRICE
+aggr23$SALES_PRICE=as.factor(aggr23$SALES_PRICE)
+aggr23$SALES_PRICE=as.numeric(as.character(aggr23$SALES_PRICE))
+aggr23$STREET
+nlevels(aggr23$STREET)
+class(aggr23$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(STREET,fill=STREET))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=STREET,y=SALES_PRICE,fill=STREET))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr23,
+                                                         aes(x=STREET,y=mean(SALES_PRICE),label=round(aggr23$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=STREET,y=SALES_PRICE,fill=STREET))+geom_boxplot()
+
+```
+```{r}
+aggr24=aggregate(SALES_PRICE~STREET,data = BHK_3,FUN = mean,na.rm=T)
+aggr24$SALES_PRICE
+aggr24$SALES_PRICE=as.factor(aggr24$SALES_PRICE)
+aggr24$SALES_PRICE=as.numeric(as.character(aggr24$SALES_PRICE))
+aggr24$STREET
+nlevels(aggr24$STREET)
+class(aggr24$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(STREET,fill=STREET))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=STREET,y=SALES_PRICE,fill=STREET))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr24,
+                                                         aes(x=STREET,y=mean(SALES_PRICE),label=round(aggr24$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=STREET,y=SALES_PRICE,fill=STREET))+geom_boxplot()
+
+```
+```{r}
+#11 MZZONE
+
+aggr25=aggregate(SALES_PRICE~MZZONE,data = House,FUN = mean,na.rm=T)
+aggr25$SALES_PRICE
+aggr25$SALES_PRICE=as.factor(aggr25$SALES_PRICE)
+aggr25$SALES_PRICE=as.numeric(as.character(aggr25$SALES_PRICE))
+aggr25$MZZONE
+nlevels(aggr25$MZZONE)
+class(aggr25$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(MZZONE,fill=MZZONE))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr25,
+                                                         aes(x=MZZONE,y=mean(SALES_PRICE),label=round(aggr25$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+geom_boxplot()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+geom_boxplot()
+
+```
+```{r}
+aggr26=aggregate(SALES_PRICE~MZZONE,data = BHK_2,FUN = mean,na.rm=T)
+aggr26$SALES_PRICE
+aggr26$SALES_PRICE=as.factor(aggr26$SALES_PRICE)
+aggr26$SALES_PRICE=as.numeric(as.character(aggr26$SALES_PRICE))
+aggr26$MZZONE
+nlevels(aggr26$MZZONE)
+class(aggr26$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(MZZONE,fill=MZZONE))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr26,
+                                                         aes(x=MZZONE,y=mean(SALES_PRICE),label=round(aggr26$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+geom_boxplot()
+
+```
+```{r}
+aggr27=aggregate(SALES_PRICE~MZZONE,data = BHK_3,FUN = mean,na.rm=T)
+aggr27$SALES_PRICE
+aggr27$SALES_PRICE=as.factor(aggr27$SALES_PRICE)
+aggr27$SALES_PRICE=as.numeric(as.character(aggr27$SALES_PRICE))
+aggr27$MZZONE
+nlevels(aggr27$MZZONE)
+class(aggr27$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(MZZONE,fill=MZZONE))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr27,
+                                                         aes(x=MZZONE,y=mean(SALES_PRICE),label=round(aggr27$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=MZZONE,y=SALES_PRICE,fill=MZZONE))+geom_boxplot()
+
+```
+```{r}
+#12 QS_ROOM
+
+aggr28=aggregate(SALES_PRICE~QS_ROOMS,data = House,FUN = mean,na.rm=T)
+aggr28$SALES_PRICE
+aggr28$SALES_PRICE=as.factor(aggr28$SALES_PRICE)
+aggr28$SALES_PRICE=as.numeric(as.character(aggr28$SALES_PRICE))
+aggr28$QS_ROOMS
+nlevels(aggr28$QS_ROOMS)
+class(aggr28$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(QS_ROOMS,fill=QS_ROOMS))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=QS_ROOMS,y=SALES_PRICE,fill=QS_ROOMS))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr28,
+                                                         aes(x=QS_ROOMS,y=mean(SALES_PRICE),label=round(aggr28$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=QS_ROOMS,y=SALES_PRICE,fill=QS_ROOMS))+geom_boxplot()
+
+```
+```{r}
+aggr29=aggregate(SALES_PRICE~QS_ROOMS,data = BHK_2,FUN = mean,na.rm=T)
+aggr29$SALES_PRICE
+aggr29$SALES_PRICE=as.factor(aggr29$SALES_PRICE)
+aggr29$SALES_PRICE=as.numeric(as.character(aggr29$SALES_PRICE))
+aggr29$QS_ROOMS
+nlevels(aggr29$QS_ROOMS)
+class(aggr29$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(QS_ROOMS,fill=QS_ROOMS))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=QS_ROOMS,y=SALES_PRICE,fill=QS_ROOMS))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr29,
+                                                         aes(x=QS_ROOMS,y=mean(SALES_PRICE),label=round(aggr29$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=QS_ROOMS,y=SALES_PRICE,fill=QS_ROOMS))+geom_boxplot()
+
+```
+```{r}
+aggr30=aggregate(SALES_PRICE~QS_ROOMS,data = BHK_3,FUN = mean,na.rm=T)
+aggr30$SALES_PRICE
+aggr30$SALES_PRICE=as.factor(aggr30$SALES_PRICE)
+aggr30$SALES_PRICE=as.numeric(as.character(aggr30$SALES_PRICE))
+aggr30$QS_ROOMS
+nlevels(aggr30$QS_ROOMS)
+class(aggr30$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(QS_ROOMS,fill=QS_ROOMS))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=QS_ROOMS,y=SALES_PRICE,fill=QS_ROOMS))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr30,
+                                                         aes(x=QS_ROOMS,y=mean(SALES_PRICE),label=round(aggr30$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=QS_ROOMS,y=SALES_PRICE,fill=QS_ROOMS))+geom_boxplot()
+
+```
+```{r}
+# 13 QS_BATHROOM
+
+aggr31=aggregate(SALES_PRICE~QS_BATHROOM,data = House,FUN = mean,na.rm=T)
+aggr31$SALES_PRICE
+aggr31$SALES_PRICE=as.factor(aggr31$SALES_PRICE)
+aggr31$SALES_PRICE=as.numeric(as.character(aggr31$SALES_PRICE))
+aggr31$QS_BATHROOM
+nlevels(aggr31$QS_BATHROOM)
+class(aggr31$SALES_PRICE)
+
+ggplot(data = House,mapping = aes(QS_BATHROOM,fill=QS_BATHROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=QS_BATHROOM,y=SALES_PRICE,fill=QS_BATHROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr31,
+                                                         aes(x=QS_BATHROOM,y=mean(SALES_PRICE),label=round(aggr31$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=QS_BATHROOM,y=SALES_PRICE,fill=QS_BATHROOM))+geom_boxplot()
+
+```
+```{r}
+aggr32=aggregate(SALES_PRICE~QS_BATHROOM,data = BHK_2,FUN = mean,na.rm=T)
+aggr32$SALES_PRICE
+aggr32$SALES_PRICE=as.factor(aggr32$SALES_PRICE)
+aggr32$SALES_PRICE=as.numeric(as.character(aggr32$SALES_PRICE))
+aggr32$QS_BATHROOM
+nlevels(aggr32$QS_BATHROOM)
+class(aggr32$SALES_PRICE)
+
+ggplot(data = BHK_2,mapping = aes(QS_BATHROOM,fill=QS_BATHROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=QS_BATHROOM,y=SALES_PRICE,fill=QS_BATHROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr32,
+                                                         aes(x=QS_BATHROOM,y=mean(SALES_PRICE),label=round(aggr32$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=QS_BATHROOM,y=SALES_PRICE,fill=QS_BATHROOM))+geom_boxplot()
+
+```
+```{r}
+aggr33=aggregate(SALES_PRICE~QS_BATHROOM,data = BHK_3,FUN = mean,na.rm=T)
+aggr33$SALES_PRICE
+aggr33$SALES_PRICE=as.factor(aggr33$SALES_PRICE)
+aggr33$SALES_PRICE=as.numeric(as.character(aggr33$SALES_PRICE))
+aggr33$QS_BATHROOM
+nlevels(aggr33$QS_BATHROOM)
+class(aggr33$SALES_PRICE)
+
+ggplot(data = BHK_3,mapping = aes(QS_BATHROOM,fill=QS_BATHROOM))+geom_bar()
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=QS_BATHROOM,y=SALES_PRICE,fill=QS_BATHROOM))+
+  geom_bar(stat="identity",position = "dodge")+geom_text(data=aggr33,
+                                                         aes(x=QS_BATHROOM,y=mean(SALES_PRICE),label=round(aggr33$SALES_PRICE)))
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=QS_BATHROOM,y=SALES_PRICE,fill=QS_BATHROOM))+geom_boxplot()
+
+```
+```{r}
+#15 Houseage
+
+ggplot(data = House,mapping = aes(houseage))+geom_histogram(fill="steelblue")
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=houseage,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+#16 REG_FEE
+
+ggplot(data = House,mapping = aes(REG_FEE))+geom_histogram(fill="steelblue")
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=REG_FEE,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+cor.test(House$INT_SQFT,House$SALES_PRICE)
+boxplot.stats(House$REG_FEE)$out
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(REG_FEE))+geom_histogram(fill="steelblue")
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=REG_FEE,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+cor.test(BHK_2$INT_SQFT,BHK_2$SALES_PRICE)
+boxplot.stats(BHK_2$REG_FEE)$out
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(REG_FEE))+geom_histogram(fill="steelblue")
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=REG_FEE,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+cor.test(BHK_3$INT_SQFT,BHK_3$SALES_PRICE)
+boxplot.stats(BHK_3$REG_FEE)$out
+
+```
+```{r}
+#17 COMMIS
+ggplot(data = House,mapping = aes(COMMIS))+geom_histogram(fill="steelblue")
+
+```
+```{r}
+ggplot(data = House,mapping = aes(x=COMMIS,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+cor.test(House$COMMIS,House$SALES_PRICE)
+boxplot.stats(House$COMMIS)$out
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(COMMIS))+geom_histogram(fill="steelblue")
+
+```
+```{r}
+ggplot(data = BHK_2,mapping = aes(x=COMMIS,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+cor.test(BHK_2$COMMIS,BHK_2$SALES_PRICE)
+boxplot.stats(BHK_2$COMMIS)$out
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(COMMIS))+geom_histogram(fill="steelblue")
+
+```
+```{r}
+ggplot(data = BHK_3,mapping = aes(x=COMMIS,y=SALES_PRICE))+geom_point(color='darkblue')
+
+```
+```{r}
+cor.test(BHK_3$COMMIS,BHK_3$SALES_PRICE)
+boxplot.stats(BHK_3$COMMIS)$out
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
